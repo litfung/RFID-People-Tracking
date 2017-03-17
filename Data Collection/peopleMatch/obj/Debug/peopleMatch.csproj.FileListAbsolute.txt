@@ -1,0 +1,5 @@
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\peopleMatch\bin\Debug\peopleMatch.exe.config
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\peopleMatch\bin\Debug\peopleMatch.exe
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\peopleMatch\bin\Debug\peopleMatch.pdb
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\peopleMatch\obj\Debug\peopleMatch.exe
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\peopleMatch\obj\Debug\peopleMatch.pdb

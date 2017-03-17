@@ -183,4 +183,7 @@
   <data name="TemplateIrregular" xml:space="preserve">
     <value>C:\ActivityRecognition\Templete_Irregular</value>
   </data>
+  <data name="DirectionImage" xml:space="preserve">
+    <value>C:\PeopleTracking\Record\Rss\</value>
+  </data>
 </root>

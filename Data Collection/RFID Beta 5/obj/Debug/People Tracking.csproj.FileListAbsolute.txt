@@ -2,3 +2,22 @@ C:\Users\Xinyu Li\OneDrive\Source Control\GitHub\RFID-People-Tracking\Data Colle
 C:\Users\Xinyu Li\OneDrive\Source Control\GitHub\RFID-People-Tracking\Data Collection\RFID Beta 5\obj\Debug\People Tracking.csproj.ResolveComReference.cache
 C:\Users\Xinyu Li\OneDrive\Source Control\GitHub\RFID-People-Tracking\Data Collection\RFID Beta 5\obj\Debug\RFID Beta 5.exe
 C:\Users\Xinyu Li\OneDrive\Source Control\GitHub\RFID-People-Tracking\Data Collection\RFID Beta 5\obj\Debug\RFID Beta 5.pdb
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\RFID Beta 5\bin\Debug\RFID Beta 5.exe.config
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\RFID Beta 5\bin\Debug\RFID Beta 5.exe
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\RFID Beta 5\bin\Debug\RFID Beta 5.pdb
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\RFID Beta 5\bin\Debug\Accord.IO.dll
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\RFID Beta 5\bin\Debug\Accord.MachineLearning.dll
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\RFID Beta 5\bin\Debug\Accord.Math.dll
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\RFID Beta 5\bin\Debug\Accord.Statistics.dll
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\RFID Beta 5\bin\Debug\AForge.dll
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\RFID Beta 5\bin\Debug\AForge.Math.dll
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\RFID Beta 5\bin\Debug\Accord.IO.xml
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\RFID Beta 5\bin\Debug\Accord.MachineLearning.xml
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\RFID Beta 5\bin\Debug\Accord.Math.xml
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\RFID Beta 5\bin\Debug\Accord.Statistics.xml
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\RFID Beta 5\bin\Debug\AForge.xml
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\RFID Beta 5\bin\Debug\AForge.Math.xml
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\RFID Beta 5\obj\Debug\People Tracking.csprojResolveAssemblyReference.cache
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\RFID Beta 5\obj\Debug\People Tracking.csproj.ResolveComReference.cache
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\RFID Beta 5\obj\Debug\RFID Beta 5.exe
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\RFID Beta 5\obj\Debug\RFID Beta 5.pdb

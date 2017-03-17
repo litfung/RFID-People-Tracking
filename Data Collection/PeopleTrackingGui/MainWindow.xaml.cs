@@ -9,9 +9,10 @@ using System.Windows.Input;
 using System.Threading;
 using ActivityRecognition;
 using RFID_Beta_5;
-using MathNet.Filtering.Median;
 using System.IO;
-//ddd
+using MathNet;
+
+
 namespace PeopleTrackingGui
 {
     /// <summary>
@@ -231,6 +232,7 @@ namespace PeopleTrackingGui
 
         private Dictionary<ulong, KeyValuePair<string, double>> optMatch;
 
+        public delegate void drawGraphHandel(MathNet.Numerics.LinearAlgebra.Matrix<double> matrix);
 
 
         public void ShutDownApplication()
@@ -306,6 +308,8 @@ namespace PeopleTrackingGui
             kinectPosition = new Point(0, 0);
 
             optMatch = new Dictionary<ulong, KeyValuePair<string, double>>();
+
+            forceStart();
             //DepthButton.Background = Brushes.Yellow;
         }
 
@@ -349,6 +353,72 @@ namespace PeopleTrackingGui
             }
         }
 
+        public void drawRssMap_(MathNet.Numerics.LinearAlgebra.Matrix<double> matrix) {
+
+            try
+
+            {
+
+                drawGraphHandel d = drawRssMap;
+
+                this.Dispatcher.Invoke(d, new Object[] { matrix });
+
+            }
+
+            catch (Exception e)
+
+            {
+
+                Console.WriteLine(e.ToString());
+
+            }
+        }
+        
+        private void drawRssMap(MathNet.Numerics.LinearAlgebra.Matrix<double> matrix) {
+
+            try
+            {
+                using (DrawingContext drawingContext = drawingGroup.Open())
+                {
+                    
+                    byte[] pixels = new byte[matrix.ColumnCount * matrix.RowCount];
+
+                    for (int i = 0; i < matrix.RowCount; i++)
+                    {
+                        for (int j = 0; j < matrix.ColumnCount; j++)
+                        {
+                            pixels[i * matrix.ColumnCount + j] = Convert.ToByte(matrix[i, j]);
+                        }
+
+                    }
+
+                    ActivityRecognition.Record.writeArrays(pixels);
+
+                    drawingContext.DrawImage(Transformation.ToBitmap(TagIds.width, TagIds.height, pixels),
+
+                                                            new Rect(0.0, 0.0, TagIds.width, TagIds.height));
+
+                    Image img = new Image();
+                    
+                    img.Source = depthSource;
+
+                    var height = TagIds.width;
+
+                    var width = TagIds.height;
+
+
+
+                    img.Arrange(new Rect(0, 0, width, height));
+
+
+                    ActivityRecognition.Record.RecordHeightViews(img);
+                }
+            }
+            catch (Exception e) {
+                Console.WriteLine(e.ToString());
+            }
+
+        }
 
         /// <summary>
         /// Handle the processing when Kinect frame arrived
@@ -519,9 +589,9 @@ namespace PeopleTrackingGui
                         skeletonDis[i] = relDis.Value;
                         i++;
                     }
-                    OnlineMedianFilter filter = new OnlineMedianFilter(5);
+                    //OnlineMedianFilter filter = new OnlineMedianFilter(5);
 
-                    skeletonDis = filter.ProcessSamples(skeletonDis);
+                    //skeletonDis = filter.ProcessSamples(skeletonDis);
 
 
                     int j = 0;
@@ -591,9 +661,9 @@ namespace PeopleTrackingGui
                         i++;
                     }
 
-                    OnlineMedianFilter filter = new OnlineMedianFilter(5);
+                    //OnlineMedianFilter filter = new OnlineMedianFilter(5);
 
-                    skeletonDis = filter.ProcessSamples(skeletonDis);
+                    //skeletonDis = filter.ProcessSamples(skeletonDis);
 
                     for (int k = 0; k < skeletonDis.Length; k++)
                     {
@@ -618,9 +688,9 @@ namespace PeopleTrackingGui
 
                         }
 
-                        OnlineMedianFilter o = new OnlineMedianFilter(5);
+                        //OnlineMedianFilter o = new OnlineMedianFilter(5);
 
-                        rfidVe = o.ProcessSamples(rfidVe);
+                        //rfidVe = o.ProcessSamples(rfidVe);
 
                         if (!hasWrittenrfid)
                         {
@@ -812,6 +882,18 @@ namespace PeopleTrackingGui
             isStoppingRecord = false;
         }
 
+
+        private void forceStart() {
+            if (rfidReader == null) rfidReader = new RFID(this);
+            //rfidReader.Stop();
+            rfid_Thread = new Thread(new ThreadStart(rfidReader.run));
+            //rfid_Thread.Abort();
+            //rfidReader.Stop();
+            rfid_Thread.Start();
+
+            //isRecording = true;
+        }
+
         /// <summary>
         /// Determine recording system status with requirements
         /// </summary>
@@ -819,7 +901,7 @@ namespace PeopleTrackingGui
         {
             // Take number of people in the view for the requirements
             // Start recording
-            if (Transformation.GetNumberOfPeople(persons) >= 1)
+            if (Transformation.GetNumberOfPeople(persons) >= 0)
             {
                 if (!isRecording)
                 {
@@ -827,7 +909,7 @@ namespace PeopleTrackingGui
                     ActivityRecognition.Record.StartTime = DateTime.Now.ToString("M-d-yyyy_HH-mm-ss");
 
                     //if (objectDetector == null) objectDetector = new ObjectDetector(ListBox_Object, ListView_Object);
-                    if (rfidReader == null) rfidReader = new RFID();
+                    if (rfidReader == null) rfidReader = new RFID(this);
 
                     if (isRFIDRequired)
                     {
@@ -873,7 +955,7 @@ namespace PeopleTrackingGui
 
 
             // Stop recording while the moving person < 1
-            if (Transformation.GetNumberOfPeople(persons) < 1)
+            if (Transformation.GetNumberOfPeople(persons) < 0)
             {
 
 

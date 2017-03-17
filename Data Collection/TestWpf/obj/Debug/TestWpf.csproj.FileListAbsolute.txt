@@ -1,0 +1,3 @@
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\TestWpf\obj\Debug\TestWpf.csprojResolveAssemblyReference.cache
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\TestWpf\obj\Debug\TestWpf.Properties.Resources.resources
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\TestWpf\obj\Debug\TestWpf.csproj.GenerateResource.Cache

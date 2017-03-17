@@ -7,14 +7,19 @@ using Impinj.OctaneSdk;
 using System.Windows;
 using System.Reflection;
 using System.Collections.Generic;
-using NodaTime;
 using PeopleTrackingGui;
+using NodaTime;
+using MathNet.Numerics.LinearAlgebra;
+
+
 
 namespace RFID_Beta_5
 {
     class RFID
     {
         public static bool IsRFIDOpen = false;
+
+        public static int antennaNum = 4;
 
         public readonly static long TIME_DIFFERENCE = 4 * 3600 * 1000 + 18 * 60 * 1000 + 16 * 1000;
 
@@ -31,7 +36,7 @@ namespace RFID_Beta_5
         static double Ant_2 = 0;
         static double Ant_3 = 0;
         static double Ant_4 = 0;
-
+        
         static double Ant_count_1 = 0;
         static double Ant_count_2 = 0;
         static double Ant_count_3 = 0;
@@ -81,21 +86,138 @@ namespace RFID_Beta_5
         public static int frameCounter = 0;
 
         public static int totalCounter = 0;
+        
 
         public static DateTime lastTagTime;
 
-        public RFID()
+        public List<Matrix<double>> tagMatrix;
+        public Matrix<double> matrix;
+        public Dictionary<String,double[]> holdingTags;
+
+        private System.Timers.Timer generateRssMap;
+        private static readonly double GENERATE_RSSMAP_INTERVAL = 1000 * 3; // Millisecond
+        public PeopleTrackingGui.MainWindow m;
+        public int rxSensitivity = -80;
+        public int maxdbm = -30;
+
+
+
+        public RFID(MainWindow m)
         {
+            
             string dir = @"" + PeopleTrackingGui.Properties.Resources.DirectoryRFID;
             if (!Directory.Exists(dir))
             {
                 Directory.CreateDirectory(dir);
             }
+            this.m = m;
             StartTime = DateTime.Now.ToString("M-d-yyyy_HH-mm-ss");
             fileName = @dir + "RFID_" + StartTime + ".txt";
 
             RfidVelocityList = new Dictionary<string, RfidVelocity>();
             tagLastTime = new Dictionary<string, DateTime>();
+
+            tagMatrix = new List<Matrix<double>>();
+            initializeRss();
+
+
+            generateRssMap = new System.Timers.Timer();
+            generateRssMap.AutoReset = true;
+            generateRssMap.Elapsed += generateRssMap_Elapsed;
+            generateRssMap.Interval = GENERATE_RSSMAP_INTERVAL;
+            generateRssMap.Enabled = true;
+
+            Console.WriteLine("RFID_constructed");
+
+            
+        }
+
+        private Matrix<double> rssMapGenerater (double[] arr) {
+            Matrix<double> rssMap = Matrix<double>.Build.Dense(TagIds.width, TagIds.height, 0);
+            for (int j = 0; j < arr.Length; j++)
+            {
+
+                for (int k = 0; k < rssMap.RowCount; k++)
+                {
+
+                    for (int w = 0; w < rssMap.ColumnCount; w++)
+                    {
+
+                        if (Math.Sqrt(Math.Pow((w - TagIds.antennaLocationsX[j]), 2) + Math.Pow((k - TagIds.antennaLocationsY[j]), 2)) < 170)
+                        {
+                            rssMap[k, w] += arr[j];
+                        }
+                    }
+
+                }
+            }
+            rssMap *= (255.0 / (maxdbm - rxSensitivity));
+            return rssMap;
+        }
+
+        private void generateRssMap_Elapsed(object sender, System.Timers.ElapsedEventArgs e) {
+
+            Console.WriteLine("start generating");
+
+            List<Matrix<double>> RSSMaps = new List<Matrix<double>>();
+
+            foreach (KeyValuePair<string, double[]> hold in holdingTags) {
+
+                var rssMap = rssMapGenerater(hold.Value);
+                ActivityRecognition.Record.RecodrdHoldingRss(rssMap,hold.Key);
+
+            }
+
+            
+
+            for (int i = 0; i < matrix.RowCount; i++) {
+
+                //Matrix<double> rssMap=Matrix<double>.Build.Dense(TagIds.width,TagIds.height, 0);
+                //for (int j = 0; j < matrix.ColumnCount; j++) {
+
+                //    for (int k = 0; k < rssMap.RowCount; k++) {
+
+                //        for (int w = 0; w < rssMap.ColumnCount; w++) {
+
+                //            if (Math.Sqrt(Math.Pow((w-TagIds.antennaLocationsX[j]),2)+ Math.Pow((k - TagIds.antennaLocationsY[j]), 2)) < 170) {
+                //                rssMap[k, w] += matrix[i, j];
+                //            }
+                //        }
+
+                //    }
+                //}
+                //rssMap *= (255.0 / (maxdbm-rxSensitivity));
+
+                double[] arr=ActivityRecognition.Transformation.getMatrixRow(matrix, i);
+
+                var rssMap = rssMapGenerater(arr);
+                RSSMaps.Add(rssMap);
+                
+            }
+
+
+
+            Matrix<double> normalizeRssMap = Matrix<double>.Build.Dense(TagIds.width, TagIds.height, 0);
+
+            foreach(var map in RSSMaps)
+            {
+                normalizeRssMap += map;
+            }
+
+            ActivityRecognition.Record.RecordRssMapFiles(RSSMaps);
+            //m.drawRssMap_(RSSMaps[3]);
+            m.drawRssMap_(MatrixUtils.NormalizeMatrix(normalizeRssMap) * 255.0);
+
+
+
+            initializeRss();
+
+        }
+        private void initializeRss() {
+
+            matrix = Matrix<double>.Build.Dense(TagIds.recordedTags.Length, antennaNum, 0); 
+            holdingTags = new Dictionary<string, double[]>();
+
         }
 
         public void run()
@@ -113,15 +235,15 @@ namespace RFID_Beta_5
                 settings.Report.IncludeLastSeenTime = true;
                 settings.Report.IncludeChannel = true;
 
-                settings.ReaderMode = ReaderMode.MaxMiller;
+                settings.ReaderMode = ReaderMode.DenseReaderM4;
                 settings.SearchMode = SearchMode.DualTarget;
                 settings.Session = 2;
-                settings.TagPopulationEstimate = 20;
-                settings.Antennas.DisableAll();
-                settings.Antennas.GetAntenna(1).IsEnabled = false;
+                settings.TagPopulationEstimate = 30;
+                settings.Antennas.DisableAll(); 
+                settings.Antennas.GetAntenna(1).IsEnabled = true;
                 settings.Antennas.GetAntenna(2).IsEnabled = true;
-                settings.Antennas.GetAntenna(3).IsEnabled = false;
-                settings.Antennas.GetAntenna(4).IsEnabled = false;
+                settings.Antennas.GetAntenna(3).IsEnabled = true;
+                settings.Antennas.GetAntenna(4).IsEnabled = true;
 
                 settings.Antennas.GetAntenna(1).MaxTxPower = true;
                 settings.Antennas.GetAntenna(1).MaxRxSensitivity = true;
@@ -131,6 +253,23 @@ namespace RFID_Beta_5
                 settings.Antennas.GetAntenna(3).MaxRxSensitivity = true;
                 settings.Antennas.GetAntenna(4).MaxTxPower = true;
                 settings.Antennas.GetAntenna(4).MaxRxSensitivity = true;
+
+                settings.Antennas.TxPowerMax = true;
+                //settings.Antennas.TxPowerInDbm = 31;
+                settings.Antennas.RxSensitivityInDbm = rxSensitivity;
+
+                //settings.Filters.TagFilter1.MemoryBank = MemoryBank.Epc;
+                //// Start matching at the third word (bit 32), since the 
+                //// first two words of the EPC memory bank are the
+                //// CRC and control bits. BitPointers.Epc is a helper
+                //// enumeration you can use, so you don't have to remember this.
+                //settings.Filters.TagFilter1.BitPointer = BitPointers.Epc;
+                //// Only match tags with EPCs that start with "2222"
+                //settings.Filters.TagFilter1.TagMask = "2222";
+                //// This filter is 16 bits long (one word).
+                //settings.Filters.TagFilter1.BitCount = 16;
+
+                //settings.Filters.Mode = TagFilterMode.OnlyFilter1;
 
                 reader.ApplySettings(settings);
                 reader.TagsReported += OnTagsReported;
@@ -211,9 +350,57 @@ namespace RFID_Beta_5
                     startTime = Convert.ToDouble(tag.LastSeenTime.ToString());
                     START_TIME_FLAG = true;
                 }
-                //tag.Epc.ToString() == "3008 33B2 DDD9 0140 0000 0000"   
-                if (tag.Epc.ToString() == "0908 2014 9630 0000 0000 6668" || tag.Epc.ToString() == "0908 2014 9630 0000 0000 6667")
+                //tag.Epc.ToString() == "3008 33B2 DDD9 0140 0000 0000"    
+                //Console.WriteLine(tag.Epc.ToString());
+                if (tag.Epc.ToString() == "0000 0000 0000 0000 0000 020D" || tag.Epc.ToString() == "0000 0000 0000 0000 0000 020F" || false)
                 {
+
+
+                    if (Array.FindIndex(TagIds.holdingtags, id => id.Equals(tag.Epc.ToString())) > -1)
+                    {
+                        int antenna = tag.AntennaPortNumber - 1;
+                        if (!holdingTags.ContainsKey(tag.Epc.ToString()))
+                        {
+                            
+                            holdingTags.Add(tag.Epc.ToString(), new double[4]);
+                            holdingTags[tag.Epc.ToString()][antenna] = tag.PeakRssiInDbm - rxSensitivity;
+                        }
+                        else {
+                            if (holdingTags[tag.Epc.ToString()][antenna] == 0)
+                            {
+                                holdingTags[tag.Epc.ToString()][antenna] = tag.PeakRssiInDbm - rxSensitivity;
+                            }
+                            else {
+                                double originalvalue = holdingTags[tag.Epc.ToString()][antenna];
+                                holdingTags[tag.Epc.ToString()][antenna] = (originalvalue + tag.PeakRssiInDbm - rxSensitivity) / 2;
+                            }
+                            
+                        }
+                    }
+                    else {
+                        int tag_index = Array.FindIndex(TagIds.recordedTags, id => id.Equals(tag.Epc.ToString()));
+
+                        if (tag_index != -1)
+                        {
+                            int antenna = tag.AntennaPortNumber - 1;
+                            if (matrix[tag_index, antenna] == 0)
+                            {
+                                matrix[tag_index, antenna] = tag.PeakRssiInDbm - rxSensitivity;
+                            }
+                            else
+                            {
+                                double originalvalue = matrix[tag_index, antenna];
+                                matrix[tag_index, antenna] = (originalvalue + tag.PeakRssiInDbm - rxSensitivity) / 2;
+                            }
+                        }
+                    }
+
+
+
+
+
+                     
+
                     if (tag.AntennaPortNumber == 1)
                     {
                         if (Row_count == 1)
@@ -243,6 +430,9 @@ namespace RFID_Beta_5
                             if (Math.Abs(Ant_1 - 0) < 5 && Math.Abs(Ant_1 - Ant_1_previous) <= 5)
                             {
                                 //Write_file(1, Ant_1, timeWriteFile);
+
+                                Write_file(tag.Epc.ToString(), tag.AntennaPortNumber, tag.PeakRssiInDbm, Convert.ToDouble(tag.LastSeenTime.ToString()));
+                                
                                 Ant_1_previous = Ant_1;
                                 Row_count++;
                             }
@@ -261,6 +451,7 @@ namespace RFID_Beta_5
                     }
                     else if (tag.AntennaPortNumber == 2)
                     {
+                        Console.WriteLine(tag.Epc.ToString());
                         if (Row_count == 1)
                         {
                             phaseAngle_2_Past = tag.PhaseAngleInRadians;
@@ -289,7 +480,8 @@ namespace RFID_Beta_5
                             {
                                 RFID_Beta_5.Velocity v = RFID_Beta_5.Velocity.getVelocity();
                                 double velocity = v.v_calculator(tag.ChannelInMhz, Ant_2);
-                                Write_file(tag.Epc.ToString(), Ant_2, API_DFS_2, velocity, Convert.ToDouble(tag.LastSeenTime.ToString()));
+                                //Write_file(tag.Epc.ToString(), Ant_2, API_DFS_2, velocity, Convert.ToDouble(tag.LastSeenTime.ToString()));
+                                Write_file(tag.Epc.ToString(), tag.AntennaPortNumber, tag.PeakRssiInDbm, Convert.ToDouble(tag.LastSeenTime.ToString()));
                                 //RfidVelocityList.Add(tag.Epc.ToString(),)
 
                                 frameCounter++;
@@ -297,7 +489,7 @@ namespace RFID_Beta_5
                                 totalCounter++;
 
 
-                                RecordTagVelocity(tag.Epc.ToString(), velocity, Convert.ToDouble(tag.LastSeenTime.ToString()));
+                                //RecordTagVelocity(tag.Epc.ToString(), velocity, Convert.ToDouble(tag.LastSeenTime.ToString()));
 
                                 //_formatEpc(tag.LastSeenTime.ToString());
 
@@ -346,6 +538,7 @@ namespace RFID_Beta_5
                             if (Math.Abs(Ant_3 - 0) < 5 && Math.Abs(Ant_3 - Ant_3_previous) <= 5)
                             {
                                 //Write_file(3, Ant_3, timeWriteFile);
+                                Write_file(tag.Epc.ToString(), tag.AntennaPortNumber, tag.PeakRssiInDbm,Convert.ToDouble(tag.LastSeenTime.ToString()));
                                 Ant_3_previous = Ant_3;
                                 Row_count++;
                             }
@@ -382,6 +575,9 @@ namespace RFID_Beta_5
                                 Ant_4 = Ant_4 + (1 / (4 * 3.1416)) * (delta_Pahse_Angle / delta_Timestamp);
                                 API_DFS_4 += tag.RfDopplerFrequency;
                                 Ant_count_4++;
+
+                                Write_file(tag.Epc.ToString(), tag.AntennaPortNumber, tag.PeakRssiInDbm, Convert.ToDouble(tag.LastSeenTime.ToString()));
+
                             }
                             channel_4_Past = tag.ChannelInMhz;
                         }
@@ -439,6 +635,22 @@ namespace RFID_Beta_5
             file.Close();
         }
 
+
+        public static void Write_file(String tagId,double port,double rss,double time) {
+            FileStream file = new FileStream(fileName, FileMode.Append);
+            StreamWriter writer = new StreamWriter(file, Encoding.Default);
+
+            var time2 = GetMbtaDateTime(time);
+
+            writer.WriteLine("{0},{1},{2},{3}",tagId, port, rss, time2.ToString(@"yyyy-MM-dd HH:mm:ss:fff"));
+
+            //Console.WriteLine("{0},{1},{2},{3},{4}",
+            //tagId, Ant_2, API_DFS_2, velocity, time2.ToString(@"yyyy-MM-dd HH:mm:ss:fff"));
+
+            writer.Close();
+            file.Close();
+        }
+
         public static DateTime FromUnixTime(long unixTime)
         {
             unixTime = unixTime / 1000;
@@ -457,6 +669,7 @@ namespace RFID_Beta_5
             var nodaTime = instant.InZone(mbtaTimeZone);
 
             return nodaTime.ToDateTimeUnspecified().AddMilliseconds(mbtaEpochTime.Millisecond);
+            //return new DateTime();
         }
 
 

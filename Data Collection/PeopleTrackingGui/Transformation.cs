@@ -14,7 +14,9 @@ using System.Windows.Controls;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Drawing.Imaging;
+using MathNet.Numerics.LinearAlgebra;
 using System.Runtime.Serialization.Formatters.Binary;
+
 
 namespace ActivityRecognition
 {
@@ -202,6 +204,150 @@ namespace ActivityRecognition
             return BitmapSource.Create(width, height, 96, 96, format, null, pixels, stride); 
         }
 
+
+        public static System.Drawing.Bitmap ToBitmapNSource(int width, int height, byte[] depthPixels)
+
+        {
+
+            System.Windows.Media.PixelFormat format = PixelFormats.Bgr32;
+
+
+
+            byte[] pixels = new byte[width * height * (format.BitsPerPixel + 7) / 8];
+
+
+
+            int colorIndex = 0;
+
+            for (int depthIndex = 0; depthIndex < depthPixels.Length; ++depthIndex)
+
+            {
+
+                byte depth = depthPixels[depthIndex];
+
+
+
+                byte intensity = depth;
+
+
+
+                pixels[colorIndex++] = intensity;
+
+                pixels[colorIndex++] = intensity;
+
+                pixels[colorIndex++] = intensity;
+
+
+
+                ++colorIndex;
+
+            }
+
+
+
+            int stride = width * format.BitsPerPixel / 8;
+
+
+            //var bitmap = new System.Drawing.Bitmap(width, height);
+            //var data = bitmap.LockBits(new System.Drawing.Rectangle(System.Drawing.Point.Empty, bitmap.Size), ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format16bppGrayScale);
+            //Marshal.Copy(depthPixels, 0, data.Scan0, depthPixels.Length);
+            //bitmap.UnlockBits(data);
+
+
+            BitmapSource source = BitmapSource.Create(width, height, 96, 96, format, null, pixels, stride);
+
+
+
+            System.Drawing.Bitmap bitmap = BitmapFromSource(source);
+
+            return bitmap;
+        }
+
+
+        /// <summary>
+
+        /// Convert pixels to image source
+
+        /// </summary>
+
+        /// <param name="width"></param>
+
+        /// <param name="height"></param>
+
+        /// <param name="depthPixels"></param>
+
+        /// <returns></returns>
+
+        public static ImageSource ToBitmap(int width, int height, byte[] depthPixels)
+
+        {
+
+            System.Windows.Media.PixelFormat format = PixelFormats.Bgr32;
+
+
+
+            byte[] pixels = new byte[width * height * (format.BitsPerPixel + 7) / 8];
+
+
+
+            int colorIndex = 0;
+
+            for (int depthIndex = 0; depthIndex < depthPixels.Length; ++depthIndex)
+
+            {
+
+                byte depth = depthPixels[depthIndex];
+
+
+
+                byte intensity = depth;
+
+
+
+                pixels[colorIndex++] = intensity;
+
+                pixels[colorIndex++] = intensity;
+
+                pixels[colorIndex++] = intensity;
+
+
+
+                ++colorIndex;
+
+            }
+
+
+
+            int stride = width * format.BitsPerPixel / 8;
+
+
+            //var bitmap = new System.Drawing.Bitmap(width, height);
+            //var data = bitmap.LockBits(new System.Drawing.Rectangle(System.Drawing.Point.Empty, bitmap.Size), ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format16bppGrayScale);
+            //Marshal.Copy(depthPixels, 0, data.Scan0, depthPixels.Length);
+            //bitmap.UnlockBits(data);
+
+
+            BitmapSource source = BitmapSource.Create(width, height, 96, 96, format, null, pixels, stride);
+
+
+
+            System.Drawing.Bitmap bitmap = BitmapFromSource(source);
+
+            //bitmap.Save("C:\\Users\\ActivityRecognition\\Desktop\\lala.png");
+
+            //System.Drawing.Bitmap bitmap;
+            //using (var ms = new MemoryStream(depthPixels)) {
+            //    bitmap = new System.Drawing.Bitmap(ms);
+            //}
+
+            System.Drawing.Rectangle cloneRect = new System.Drawing.Rectangle(0, 0, width, height);
+
+            return ConvertBitmapToSource(bitmap.Clone(cloneRect, System.Drawing.Imaging.PixelFormat.Format24bppRgb));
+        }
+
+
+
+
         public static byte[] BmpToBytes(System.Drawing.Bitmap bmp)
         {
             MemoryStream ms = new MemoryStream();
@@ -232,7 +378,7 @@ namespace ActivityRecognition
             return bitmapSource;
         }
 
-        private static System.Drawing.Bitmap BytesToBmp(byte[] bmpBytes, System.Drawing.Size imageSize)
+        public static System.Drawing.Bitmap BytesToBmp(byte[] bmpBytes, System.Drawing.Size imageSize)
         {
             System.Drawing.Bitmap bmp = new System.Drawing.Bitmap(imageSize.Width, imageSize.Height);
 
@@ -416,6 +562,17 @@ namespace ActivityRecognition
         public static double PointDistance(Point p1, Point p2) {
 
             return Math.Sqrt(Math.Pow((p1.X-p2.X),2)+ Math.Pow((p1.Y - p2.Y), 2));
+        }
+
+        public static double[] getMatrixRow(Matrix<double> matrix,int index) {
+
+            double[] row = new double[matrix.ColumnCount];
+
+            for (int i = 0; i < matrix.ColumnCount; i++) {
+                row[i] = matrix[index, i];
+            }
+
+            return row;
         }
          
 

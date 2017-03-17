@@ -124,6 +124,15 @@ namespace PeopleTrackingGui.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to C:\PeopleTracking\Record\Rss\.
+        /// </summary>
+        internal static string DirectionImage {
+            get {
+                return ResourceManager.GetString("DirectionImage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to C:\ActivityRecognition\Record\.
         /// </summary>
         internal static string DirectoryErrorLog {

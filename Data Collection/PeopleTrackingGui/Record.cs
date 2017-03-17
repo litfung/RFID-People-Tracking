@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows;
 using System.Drawing;
 using PeopleTrackingGui;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace ActivityRecognition
 {
@@ -50,6 +51,28 @@ namespace ActivityRecognition
                         writer.WriteLine("{0}, {1}, {2}, {3}", person.ID, time, person.Position.X+450, person.Position.Y);
                 }
             }
+        }
+
+        public static void writeArrays(byte[] pixels) {
+
+            string dir = @"" + PeopleTrackingGui.Properties.Resources.DirectoryPosition;
+
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            string fileName = @"" + dir + StartTime + "array.txt";
+            string time = DateTime.Now.ToString(@"yyyy-MM-dd HH:mm:ss:fff");
+
+            using (StreamWriter writer = new StreamWriter(fileName, true))
+            {
+                for (int i = 0; i < pixels.Length; i++)
+                {
+                    writer.WriteLine("{0}",pixels[i]);
+                }
+            }
+
         }
 
         /// <summary>
@@ -107,8 +130,182 @@ namespace ActivityRecognition
             }
         }
 
-        
+        public static void RecordHeightViews(UIElement source)
 
-        
+        {
+
+
+
+            string time = DateTime.Now.ToString(@"HH_mm_ss");
+
+            //string file_dir = @"" + Properties.Resources.DirectionImage + "heightview_" + StartTime;
+
+
+
+            string file_dir = @"" + PeopleTrackingGui.Properties.Resources.DirectionImage + "rssMap_" + ActivityRecognition.Record.StartTime;
+
+
+
+            string dir = file_dir + "\\" + "rssMap_" + time + ".png";
+
+            if (!Directory.Exists(file_dir))
+
+            {
+
+                Directory.CreateDirectory(file_dir);
+
+            }
+
+            var bitmapEncode = Transformation.transferDrawingImageToBitmap(source);
+
+
+            using (var stream = new FileStream(dir, FileMode.Create))
+
+            {
+
+                bitmapEncode.Save(stream);
+
+            }
+
+
+
+        }
+
+        public static void RecordRssMapFiles(List<Matrix<double>> RSSMaps) {
+
+            string time = DateTime.Now.ToString(@"HH_mm_ss");
+
+            //string file_dir = @"" + Properties.Resources.DirectionImage + "heightview_" + StartTime;
+
+
+
+            string file_dir = @"" + PeopleTrackingGui.Properties.Resources.DirectionImage + "rssMap_" + ActivityRecognition.Record.StartTime;
+
+
+
+            //string dir = file_dir + "\\" + "rssMap_" + time + ".png";
+
+            for (int k = 0; k < RSSMaps.Count; k++)
+            {
+
+                Matrix<double> rss = RSSMaps[k];
+                string file_dir2 = file_dir + "\\" + k;
+                if (!Directory.Exists(file_dir2))
+                {
+
+                    Directory.CreateDirectory(file_dir2);
+
+                }
+                string dir = file_dir2 + "\\" + "rssMap_" + time + ".txt";
+                double[] pixels = new double[rss.ColumnCount * rss.RowCount];
+
+                for (int i = 0; i < rss.RowCount; i++)
+                {
+                    for (int j = 0; j < rss.ColumnCount; j++)
+                    {
+                        pixels[i * rss.ColumnCount + j] = rss[i, j];
+                    }
+
+                }
+
+                using (StreamWriter writer = new StreamWriter(dir, true))
+                {
+                    for (int i = 0; i < pixels.Length; i++)
+                    {
+                        writer.WriteLine("{0}", pixels[i]);
+                    }
+                }
+            }
+
+        }
+
+        public static void RecodrdHoldingRss(Matrix<double> rssMap, String TagId) {
+
+            string time = DateTime.Now.ToString(@"HH_mm_ss");
+            string file_dir = @"" + PeopleTrackingGui.Properties.Resources.DirectionImage + "rssMap_" + ActivityRecognition.Record.StartTime;
+
+            string file_dir2 = file_dir + "\\" + TagId;
+            if (!Directory.Exists(file_dir2))
+            {
+
+                Directory.CreateDirectory(file_dir2);
+
+            }  
+            string dir = file_dir2 + "\\" + "rssMap_" + time + ".txt";
+            double[] pixels = new double[rssMap.ColumnCount * rssMap.RowCount];
+
+            for (int i = 0; i < rssMap.RowCount; i++)
+            {
+                for (int j = 0; j < rssMap.ColumnCount; j++)
+                {
+                    pixels[i * rssMap.ColumnCount + j] = rssMap[i, j];
+                }
+
+            }
+
+            using (StreamWriter writer = new StreamWriter(dir, true))
+            {
+                for (int i = 0; i < pixels.Length; i++)
+                {
+                    writer.WriteLine("{0}", pixels[i]);
+                }
+            }
+
+        }
+
+        public static void RecordRssMaps(List<Matrix<double>> RSSMaps)
+
+        {
+
+
+
+            string time = DateTime.Now.ToString(@"HH_mm_ss");
+
+            //string file_dir = @"" + Properties.Resources.DirectionImage + "heightview_" + StartTime;
+
+
+
+            string file_dir = @"" + PeopleTrackingGui.Properties.Resources.DirectionImage + "rssMap_" + ActivityRecognition.Record.StartTime;
+
+
+
+            //string dir = file_dir + "\\" + "rssMap_" + time + ".png";
+
+            for (int k = 0; k < RSSMaps.Count; k++) {
+
+                Matrix<double> rss = RSSMaps[k];
+                string file_dir2 = file_dir + "\\" + k;
+                if (!Directory.Exists(file_dir2))
+                {
+
+                    Directory.CreateDirectory(file_dir2);
+
+                }
+                string dir = file_dir2 + "\\" + "rssMap_" + time + ".png";
+                byte[] pixels = new byte[rss.ColumnCount * rss.RowCount];
+
+                for (int i = 0; i < rss.RowCount; i++)
+                {
+                    for (int j = 0; j < rss.ColumnCount; j++)
+                    {
+                        pixels[i * rss.ColumnCount + j] = Convert.ToByte(rss[i, j]);
+                    }
+
+                }
+
+                Bitmap bmp = Transformation.ToBitmapNSource(427, 427, pixels);
+                bmp.Save(dir);
+                //Transformation.BytesToBmp(pixels, new System.Drawing.Size(427,427)).Save(dir);
+            }
+
+            
+
+
+
+        }
+
+
+
+
     }
 }
