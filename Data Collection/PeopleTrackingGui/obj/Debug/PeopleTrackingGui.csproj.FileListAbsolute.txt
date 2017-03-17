@@ -31,3 +31,6 @@ C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\P
 C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\PeopleTrackingGui\bin\Debug\NodaTime.xml
 C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\PeopleTrackingGui\obj\Debug\PeopleTrackingGui.exe
 C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking\Data Collection\PeopleTrackingGui\obj\Debug\PeopleTrackingGui.pdb
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking2\Data Collection\PeopleTrackingGui\bin\Debug\PeopleTrackingGui.exe.config
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking2\Data Collection\PeopleTrackingGui\obj\Debug\PeopleTrackingGui.exe
+C:\Users\ActivityRecognition\Source\Repos\RFID-People-Tracking2\Data Collection\PeopleTrackingGui\obj\Debug\PeopleTrackingGui.pdb
